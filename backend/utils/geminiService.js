@@ -1,0 +1,271 @@
+import dotenv from 'dotenv';
+import { GoogleGenAI } from '@google/genai';
+
+dotenv.config();
+
+const ai = new GoogleGenAI({
+    apiKey: process.env.GEMENI_API_KEY,
+});
+
+if (!process.env.GEMENI_API_KEY) {
+    console.error('FATALError: GEMENI_API_KEY is not set in environment variables.');
+    process.exit(1);
+}
+
+/**
+ * Generate flashcards from a document
+ * @param {string} text - document text
+ * @param {number} count - number of flashcards to generate
+ * @returns {Promise<Array<{question: string, answer: string, difficulty: string}>>}
+ */
+
+export const generateFlashcards = async (text, count = 10) => {
+    const prompt = `Generate exactly ${count} educational flashcards from the following text. Format each flashcard as:
+    Q: [Clear, specific question]
+    A: [Concise, accurate answer]
+    D: [Difficulty level: Easy, Medium, Hard]
+
+    Separate each flashcard with "---"
+
+    Text:
+    ${text.substring(0, 15000)}`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+        });
+
+        const generatedText = response.text;
+
+        // parse the response
+
+        const flashcards = [];
+        const cards = generatedText.split('---').filter(c => c.trim());
+
+        for (const card of cards) {
+            const lines = card.trim().split('\n');
+            let question = '', answer = '', difficulty = 'medium';
+
+            for (const line of lines) {
+                if (line.startsWith('Q:')) {
+                    question = line.substring(2).trim();
+                } else if (line.startsWith('A:')) {
+                    answer = line.substring(2).trim();
+                } else if (line.startsWith('D:')) {
+                    const diff = line.substring(2).trim().toLowerCase();
+                    if (['easy', 'medium', 'hard'].includes(diff)) {
+                        difficulty = diff;
+                    }
+                }            
+        }
+            if (question && answer) {
+                flashcards.push({ question, answer, difficulty });
+            }
+        }
+        return flashcards.slice(0, count);
+    } catch (error) {
+        console.error('Gemini API error:', error);
+        throw new Error('Failed to generate flashcards');
+    }
+    };
+
+/**
+ * Generate a quiz from a document
+ * @param {string} text - document text
+ * @param {number} count - number of quiz questions to generate
+ * @returns {Promise<Array<{question: string, options: Array, correctAnswer: string, explanation: string, difficulty: string}>>}
+ */
+
+export const generateQuiz = async (text, numQuestions = 5) => {
+    const prompt = `Generate exactly ${numQuestions} multiple-choice quiz questions from the following text.
+
+Format each question as:
+Q: [Question]
+D1: [Option 1]
+D2: [Option 2]
+D3: [Option 3]
+D4: [Option 4]
+C: [Correct option - exactly as written in D1-D4]
+E: [Brief explanation of the correct answer]
+D: [Difficulty level: Easy, Medium, Hard]
+
+Separate each question with "---"
+
+Text:
+${text.substring(0, 15000)}`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+        });
+
+        const generatedText = response.text;
+
+
+        const questions = [];
+        const questionBlocks = generatedText.split('---').filter(q => q.trim());
+
+        for (const block of questionBlocks) {
+            const lines = block.trim().split('\n');
+
+            let question = '';
+            let options = [];
+            let correctAnswer = '';
+            let explanation = '';
+            let difficulty = 'medium';
+
+            for (const line of lines) {
+                const trimmed = line.trim();
+
+                if (trimmed.startsWith('Q:')) {
+                    question = trimmed.substring(2).trim();
+
+                } else if (/^D[1-4]:/.test(trimmed)) {
+                    options.push(trimmed.substring(3).trim());
+
+                } else if (trimmed.startsWith('C:')) {
+                    correctAnswer = trimmed.substring(2).trim();
+
+                } else if (trimmed.startsWith('E:')) {
+                    explanation = trimmed.substring(2).trim();
+
+                } else if (trimmed.startsWith('D:')) {
+                    const diff = trimmed.substring(2).trim().toLowerCase();
+                    if (['easy', 'medium', 'hard'].includes(diff)) {
+                        difficulty = diff;
+                    }
+                }
+            }
+
+        
+
+            //  Only push valid questions
+            if (question && options.length === 4 && correctAnswer) {
+                questions.push({
+                    question,
+                    options,
+                    correctAnswer,
+                    explanation,
+                    difficulty
+                });
+            }
+        }
+
+        if (questions.length === 0) {
+            throw new Error("No valid questions generated by AI");
+        }
+
+        return questions.slice(0, numQuestions);
+
+    } catch (error) {
+        console.error('Gemini API error:', error.message);
+        throw new Error('Failed to generate quiz');
+    }
+};
+
+/**
+ * Generate a summary of a document
+ * @param {string} text - document text
+ * @returns {Promise<string>}
+ */
+
+export const generateSummary = async (text) => {
+    const prompt = `Summarize the following text in a concise and clear manner. Focus on the main points and key information. Keep the summary clear and structured.
+
+    Text:
+    ${text.substring(0, 20000)}`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+        });
+        const generatedText = response.text;
+        return generatedText
+    } catch (error) {
+        console.error('Gemini API error:', error);
+        throw new Error('Failed to generate summary');
+    }
+};
+
+/**
+ * Chat with document context
+ * @param {string} question - user question
+ * @param {Array<Object>} chunks - relevent document chunks
+ * @returns {Promise<string>}
+ */
+
+export const chat = async (question, chunks) => {
+
+    // ✅ Build context safely
+    const context = chunks && chunks.length > 0
+        ? chunks.map((c, i) => `[Chunk ${i + 1}]\n${c.content}`).join('\n\n')
+        : "No relevant context found.";
+
+    const prompt = `
+You are an AI assistant.
+
+Use the provided context to answer the question.
+If the answer is not in the context, clearly say:
+"I could not find the answer in the provided document."
+
+---------------------
+Context:
+${context}
+---------------------
+
+Question:
+${question}
+
+Answer:
+`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+        });
+
+        return response.text || "No response generated.";
+
+    } catch (error) {
+        console.error('Gemini API error:', error);
+        throw new Error('Failed to answer question');
+    }
+};
+
+/**
+ * Explain a specific concept from the document
+ * @param {string} concept - concept to explain
+ * @param {string} context - relevent context
+ * @returns {Promise<string>}
+ */
+
+export const explainConcept = async (concept, chunks) => {
+
+    // ✅ Convert chunks → string
+    const context = (chunks || [])
+        .filter(c => c.content && c.content.trim().length > 0)
+        .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
+        .join('\n\n');
+
+    const prompt = `Explain the concept of "${concept}" based on the following context from a document. Provide a clear and concise explanation suitable for a student learning this concept for the first time. Include examples if relevant.
+
+Context:
+${context.substring(0, 10000)}`;
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash-lite',
+            contents: prompt,
+        });
+
+        return response.text || "No explanation generated.";
+
+    } catch (error) {
+        console.error('Gemini API error:', error);
+        throw new Error('Failed to explain concept');
+    }
+};
