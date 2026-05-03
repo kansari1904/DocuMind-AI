@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Flashcard from "../models/Flashcard.js";
 
 // @desc    Get all flashcards for a document
@@ -26,9 +27,11 @@ export const getAllFlashcardSets = async (req, res, next) => {
 // @access  Private
 export const getFlashcards = async (req, res, next) => {
     try {
+        const { documentId } = req.params;
+
         const flashcards = await Flashcard.find({
             userId: req.user._id,
-            documentId: req.query.documentId
+            documentId: new mongoose.Types.ObjectId(documentId)
         })
             .populate('documentId', 'title fileName')
             .sort({ createdAt: -1 });
@@ -38,7 +41,7 @@ export const getFlashcards = async (req, res, next) => {
             count: flashcards.length,
             data: flashcards
         });
-        
+
     } catch (error) {
         next(error);
     }
@@ -71,7 +74,7 @@ export const reviewFlashcards = async (req, res, next) => {
 
         // update review info
         flashcardSets.cards[cardIndex].lastReviewed = new Date();
-        flashcardSets.cards[cardIndex].reviewCount=+ 1;
+        flashcardSets.cards[cardIndex].reviewCount += 1;
 
         await flashcardSets.save();
 
@@ -143,8 +146,6 @@ export const deleteFlashcardSet = async (req, res, next) => {
                 statusCode: 404
             });
         }
-
-        await flashcardSet.deleteOne();
 
         res.status(200).json({
             success: true,
