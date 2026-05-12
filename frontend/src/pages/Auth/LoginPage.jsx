@@ -37,22 +37,22 @@ const LoginPage = () => {
     <div className="relative flex items-center justify-center min-h-screen bg-linear-to-br from-slate-50 via-white to-slate-50">
 
       {/* Background Grid */}
-      <div className="absolute inset-0 bg-[#1f1f1e] bg-size-[16px_16px]" />
+      <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] bg-size-[16px_16px]" />
 
       {/* Main Container */}
       <div className="relative w-full max-w-md px-6">
 
-        <div className="bg-[#1f1f1e] backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-10">
+        <div className="bg-white backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-xl shadow-slate-200/50 p-10">
 
           {/* Header */}
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-linear-to-br from-emerald-400 to-teal-500 shadow-lg shadow-emerald-500/25 mb-6">
               <BrainCircuit className="w-7 h-7 text-white" strokeWidth={2} />
             </div>
-            <h1 className="text-2xl font-medium text-white tracking-tight mb-2">
+            <h1 className="text-2xl font-medium text-slate-900 tracking-tight mb-2">
               Welcome Back
             </h1>
-            <p className="text-slate-400 text-sm">
+            <p className="text-slate-500 text-sm">
               Sign in to continue your journey
             </p>
           </div>
@@ -62,17 +62,17 @@ const LoginPage = () => {
 
             {/* Email Field */}
             <div>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide">
                 Email
               </label>
               <div className="relative group">
                 <div
-                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors ${focusedField === "email"
+                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === "email"
                       ? "text-emerald-500"
                       : "text-slate-400"
                     }`}
                 >
-                  <Mail className="w-5 h-5 text-slate-200" strokeWidth={2} />
+                  <Mail className="w-5 h-5" strokeWidth={2} />
                 </div>
 
                 <input
@@ -82,24 +82,24 @@ const LoginPage = () => {
                   onFocus={() => setFocusedField("email")}
                   onBlur={() => setFocusedField(null)}
                   placeholder="your@example.com"
-                  className="w-full h-12 pl-12 pr-4 border-none border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-200 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
+                  className="w-full h-12 pl-12 pr-4 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-200 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
                 />
               </div>
             </div>
 
             {/* Password Field */}
             <div className='space-y-2'>
-              <label className="block text-xs font-semibold text-slate-300 uppercase tracking-wide mb-2">
+              <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wide mb-2">
                 Password
               </label>
               <div className="relative group">
                 <div
-                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors ${focusedField === "password"
+                  className={`absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none transition-colors duration-200 ${focusedField === "password"
                       ? "text-emerald-500"
                       : "text-slate-400"
                     }`}
                 >
-                  <Lock className="w-5 h-5 text-slate-200" strokeWidth={2} />
+                  <Lock className="w-5 h-5" strokeWidth={2} />
                 </div>
 
                 <input
@@ -109,7 +109,7 @@ const LoginPage = () => {
                   onFocus={() => setFocusedField("password")}
                   onBlur={() => setFocusedField(null)}
                   placeholder="••••••••"
-                  className="w-full h-12 pl-12 pr-4 border-none border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-200 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
+                  className="w-full h-12 pl-12 pr-4 border border-slate-200 rounded-xl bg-slate-50/50 text-slate-900 placeholder-slate-200 text-sm font-medium transition-all duration-200 focus:outline-none focus:border-emerald-500 focus:bg-white focus:shadow-lg focus:shadow-emerald-500/10"
                 />
               </div>
             </div>
@@ -146,9 +146,9 @@ const LoginPage = () => {
 
           {/* Footer */}
           <div className="mt-8 pt-6 border-t border-slate-200/60">
-            <p className="text-center text-sm text-slate-300">
+            <p className="text-center text-sm text-slate-600">
               Don't have an account?{" "}
-              <Link to="/register" className="font-semibold text-emerald-600  hover:text-emerald-700 transition-colors duration-200 ">
+              <Link to="/register" className="font-semibold text-emerald-700  hover:text-emerald-700 transition-colors duration-200 ">
                 Sign Up
               </Link>
             </p>
@@ -156,7 +156,7 @@ const LoginPage = () => {
         </div>
 
         {/* Bottom Text */}
-        <p className="text-center text-xs text-slate-300 mt-6">
+        <p className="text-center text-xs text-slate-700 mt-6">
           By continuing, you agree to our Terms & Privacy Policy
         </p>
       </div>
